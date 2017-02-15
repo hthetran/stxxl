@@ -1291,6 +1291,11 @@ public:
         std::copy(inbegin, inend, begin());
     }
 
+    //! move-constructor
+    vector(vector&& o) noexcept : vector() {
+        swap(o);
+    }
+
     //! \}
 
     //! \name Operators
@@ -1302,6 +1307,17 @@ public:
         if (&obj != this)
         {
             vector tmp(obj);
+            this->swap(tmp);
+        }
+        return *this;
+    }
+
+    //! move assignment operator
+    vector& operator = (vector&& obj) noexcept
+    {
+        if (&obj != this)
+        {
+            vector tmp(std::forward<vector>(obj));
             this->swap(tmp);
         }
         return *this;
