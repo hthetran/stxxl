@@ -1,0 +1,26 @@
+version: 0.1.{build}
+os: Visual Studio 2017
+pull_requests:
+  do_not_increment_build_number: true
+clone_folder: c:\dev\stxxl
+before_build:
+- cmd: >-
+    cd c:\dev\stxxl
+
+    echo Getting submodules
+
+    git submodule update --init --recursive
+
+    echo Running cmake...
+
+    md build
+
+    cd build
+
+    cmake -DSTXXL_TRY_COMPILE_HEADERS=ON -DSTXXL_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=RelWithAssert -G "Visual Studio 15 2017 Win64" ..
+build:
+  project: c:\dev\stxxl\build\stxxl.sln
+  parallel: true
+  verbosity: normal
+test_script:
+- cmd: ctest -V --build-config %CONFIGURATION%
