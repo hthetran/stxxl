@@ -35,5 +35,17 @@ int main()
 
     STXXL_CHECK(vector.empty());
 
+    vector_type target_vector;
+
+    target_vector.push_back(0);
+
+    target_vector = std::move(moved_vector);
+
+    for (int i = 0; i < 1<<20; ++i) {
+        STXXL_CHECK_EQUAL(i, target_vector[static_cast<size_t>(i)]);
+    }
+
+    STXXL_CHECK(moved_vector.empty());
+
     return 0;
 }
