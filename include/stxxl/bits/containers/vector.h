@@ -1182,6 +1182,16 @@ public:
         resize(old_size + 1);
         element(old_size) = obj;
     }
+
+    //! In-place construct a new element at the end.
+    template< class... Args >
+    void emplace_back(Args&&... args)
+    {
+        size_type old_size = m_size;
+        resize(old_size + 1);
+        ::new((void *)&element(old_size)) value_type(std::forward<Args>(args)...);
+    }
+
     //! Removes the last element (without returning it, see back()).
     void pop_back()
     {

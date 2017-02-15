@@ -38,6 +38,14 @@ int main()
     vector_type target_vector;
 
     target_vector.push_back(0);
+    target_vector.emplace_back(12);
+    target_vector.emplace_back(42);
+
+    STXXL_CHECK(target_vector.size() == 3);
+
+    STXXL_CHECK_EQUAL(target_vector[2], 42);
+    STXXL_CHECK_EQUAL(target_vector[1], 12);
+    STXXL_CHECK_EQUAL(target_vector[0], 0);
 
     target_vector = std::move(moved_vector);
 
