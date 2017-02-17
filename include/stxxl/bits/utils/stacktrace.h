@@ -13,6 +13,8 @@
 #ifndef STXXL_UTILS_STACKTRACE_HEADER
 #define STXXL_UTILS_STACKTRACE_HEADER
 
+#if not STXXL_MSVC
+
 #include <cxxabi.h>
 #include <execinfo.h>
 
@@ -105,4 +107,5 @@ print_stacktrace(FILE* out = stderr, unsigned int max_frames = 64)
 
 } // namespace stxxl
 
+#endif // !STXXL_MSVC
 #endif // !STXXL_UTILS_STACKTRACE_HEADER
