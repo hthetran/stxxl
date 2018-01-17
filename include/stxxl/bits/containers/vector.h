@@ -1205,6 +1205,14 @@ public:
         element(old_size) = obj;
     }
 
+    //! Append a new element at the end by move assignment.
+    void push_back(value_type&& value)
+    {
+        size_type old_size = m_size;
+        resize(old_size + 1);
+        element(old_size) = std::forward<value_type>(value);
+    }
+
     //! Append a new element at end that is constructed using the specified arguments.
     //!
     //! \note This is not more efficient than a simple push_back() in
