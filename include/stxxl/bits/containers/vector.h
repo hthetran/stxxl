@@ -1204,6 +1204,20 @@ public:
         resize(old_size + 1);
         element(old_size) = obj;
     }
+
+    //! Append a new element at end that is constructed using the specified arguments.
+    //!
+    //! \note This is not more efficient than a simple push_back() in
+    //! most cases as the element is still first constructed and then
+    //! assigned (which is a copy for POD types).
+    template <class... Args>
+    void emplace_back(Args&&... args)
+    {
+        size_type old_size = m_size;
+        resize(old_size + 1);
+        element(old_size) = value_type(std::forward<Args>(args)...);
+    }
+
     //! Removes the last element (without returning it, see back()).
     void pop_back()
     {
