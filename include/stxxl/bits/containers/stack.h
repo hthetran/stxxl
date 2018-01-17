@@ -208,6 +208,30 @@ public:
     //! incremented by 1, and top() is the inserted element.
     void push(const value_type& val)
     {
+        push_impl(val);
+    }
+
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    void push(value_type&& val)
+    {
+        push_impl(std::forward<value_type>(val));
+    }
+
+    //! Constructs and inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <class... Args>
+    void emplace(Args&&... args)
+    {
+        push_impl(value_type(std::forward<Args>(args)...));
+    }
+
+private:
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <typename T>
+    void push_impl(T&& val)
+    {
         assert(cache_offset <= 2 * blocks_per_page * block_type::size);
         //assert(cache_offset >= 0);
 
@@ -236,17 +260,18 @@ public:
 
             wait_all(requests.begin(), blocks_per_page);
 
-            *current_element = val;
+            *current_element = std::forward<T>(val);
 
             return;
         }
 
         current_element = element(cache_offset);
-        *current_element = val;
+        *current_element = std::forward<T>(val);
         ++m_size;
         ++cache_offset;
     }
 
+public:
     //! Removes the element at the top of the stack. Precondition: stack is not
     //! empty(). Postcondition: size() is decremented.
     void pop()
@@ -734,6 +759,31 @@ public:
     //! incremented by 1, and top() is the inserted element.
     void push(const value_type& val)
     {
+        push_impl(val);
+    }
+
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    void push(value_type&& val)
+    {
+        push_impl(std::forward<value_type>(val));
+    }
+
+    //! Constructs and inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <class... Args>
+    void emplace(Args&&... args)
+    {
+        push_impl(value_type(std::forward<Args>(args)...));
+    }
+
+private:
+
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <typename V>
+    void push_impl(V&& val)
+    {
         STXXL_VERBOSE3("grow_shrink_stack2::push(" << val << ")");
         assert(cache_offset <= block_type::size);
 
@@ -757,7 +807,7 @@ public:
             }
             cache_offset = 0;
         }
-        (*cache)[cache_offset] = val;
+        (*cache)[cache_offset] = std::forward<V>(val);
         ++m_size;
         ++cache_offset;
 
@@ -765,6 +815,7 @@ public:
         assert(cache_offset <= block_type::size);
     }
 
+public:
     //! Return mutable reference to the element at the top of the
     //! stack. Precondition: stack is not empty().
     value_type & top()
@@ -977,11 +1028,35 @@ public:
     //! incremented by 1, and top() is the inserted element.
     void push(const value_type& val)
     {
+        push_impl(val);
+    }
+
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    void push(value_type&& val)
+    {
+        push_impl(std::forward<value_type>(val));
+    }
+
+    //! Constructs and inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <class... Args>
+    void emplace(Args&&... args)
+    {
+        push_impl(value_type(std::forward<Args>(args)...));
+    }
+
+private:
+    //! Inserts an element at the top of the stack. Postconditions: size() is
+    //! incremented by 1, and top() is the inserted element.
+    template <typename V>
+    void push_impl(V&& val)
+    {
         assert((int_impl && !ext_impl) || (!int_impl && ext_impl));
 
         if (int_impl)
         {
-            int_impl->push(val);
+            int_impl->push(std::forward<V>(val));
             if (UNLIKELY(int_impl->size() == critical_size))
             {
                 // migrate to external stack
@@ -991,9 +1066,10 @@ public:
             }
         }
         else
-            ext_impl->push(val);
+            ext_impl->push(std::forward<V>(val));
     }
 
+public:
     //! Removes the element at the top of the stack. Precondition: stack is not
     //! empty(). Postcondition: size() is decremented.
     void pop()
