@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     STXXL_MSG("Sorting the random values");
     stxxl::sort(Values.begin(), Values.end(), comp_type(), 128 * 1024 * 1024);
 
-    STXXL_MSG("Deleting unique values");
+    STXXL_MSG("Making values unique");
     stxxl::vector<int>::iterator NewEnd = std::unique(Values.begin(), Values.end());
     Values.resize(NewEnd - Values.begin());
 
