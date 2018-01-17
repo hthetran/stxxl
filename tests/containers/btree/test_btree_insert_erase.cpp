@@ -89,8 +89,20 @@ int main(int argc, char* argv[])
 
     stxxl::vector<int>::const_iterator it = Values.begin();
     STXXL_MSG("Inserting " << Values.size() << " random values into btree");
+    bool use_emplace = false;
     for ( ; it != Values.end(); ++it)
-        BTree.insert(std::pair<int, double>(*it, double(*it) + 1.0));
+    {
+        if (use_emplace)
+        {
+            BTree.emplace(*it, static_cast<double>(*it) + 1.0);
+        }
+        else
+        {
+            BTree.insert(std::pair<int, double>(*it, static_cast<double>(*it) + 1.0));
+        }
+
+        use_emplace = !use_emplace;
+    }
 
     STXXL_MSG("Number of elements in btree: " << BTree.size());
 

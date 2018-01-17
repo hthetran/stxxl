@@ -562,6 +562,12 @@ public:
         return result;
     }
 
+    template <class... Args>
+    std::pair<iterator, bool> emplace(Args&&... args)
+    {
+        return insert(value_type(std::forward<Args>(args)...));
+    }
+
     iterator begin()
     {
         root_node_iterator_type it = m_root_node.begin();
@@ -949,6 +955,12 @@ public:
     {
         // pos ignored in the current version
         return insert(x).first;
+    }
+
+    template <class... Args>
+    iterator emplace_hint(iterator hint, Args&&... args)
+    {
+        return insert(hint, value_type(std::forward<Args>(args)...));
     }
 
     void clear()
