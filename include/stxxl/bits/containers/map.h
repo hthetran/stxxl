@@ -242,10 +242,24 @@ public:
     {
         return impl.insert(x);
     }
+
+    template <class... Args>
+    std::pair<iterator, bool> emplace(Args&&... args)
+    {
+        return impl.emplace(std::forward<Args>(args)...);
+    }
+
     iterator insert(iterator pos, const value_type& x)
     {
         return impl.insert(pos, x);
     }
+
+    template <class... Args>
+    iterator emplace_hint(iterator hint, Args&&... args)
+    {
+        return impl.emplace_hint(hint, std::forward<Args>(args)...);
+    }
+
     template <class InputIterator>
     void insert(InputIterator b, InputIterator e)
     {

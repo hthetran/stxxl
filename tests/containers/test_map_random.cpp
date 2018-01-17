@@ -43,8 +43,10 @@ using xxl_map_type = stxxl::map<key_type, data_type, cmp2,
 #define PERCENT_ERASE_BULK 9
 #define PERCENT_ERASE_KEY 90
 #define PERCENT_ERASE_ITERATOR 100
-#define PERCENT_INSERT_PAIR 100
-#define PERCENT_INSERT_BULK 100
+#define PERCENT_INSERT_PAIR 50
+#define PERCENT_EMPLACE 50
+#define PERCENT_EMPLACE_HINT 50
+#define PERCENT_INSERT_BULK 50
 #define PERCENT_SIZING 100
 #define PERCENT_LOWER 100
 #define PERCENT_UPPER 200
@@ -80,6 +82,8 @@ int main(int argc, char* argv[])
              PERCENT_ERASE_KEY +
              PERCENT_ERASE_ITERATOR +
              PERCENT_INSERT_PAIR +
+             PERCENT_EMPLACE +
+             PERCENT_EMPLACE_HINT +
              PERCENT_INSERT_BULK +
              PERCENT_LOWER +
              PERCENT_UPPER +
@@ -206,6 +210,30 @@ int main(int argc, char* argv[])
 
             STXXL_CHECK(stxxl::there(stdmap, key, 2 * key));
             STXXL_CHECK(stxxl::there(xxlmap, key, 2 * key));
+        }
+        // *********************************************************
+        // The emplace function will be called
+        // *********************************************************
+        else if (step < (percent += PERCENT_EMPLACE))
+        {
+            key_type key = rand() % MAX_KEY;
+            stdmap.emplace(key, 2*key);
+            xxlmap.emplace(key, 2*key);
+
+            STXXL_CHECK(stxxl::there(stdmap, key, 2*key));
+            STXXL_CHECK(stxxl::there(xxlmap, key, 2*key));
+        }
+        // *********************************************************
+        // The emplace_hint function will be called
+        // *********************************************************
+        else if (step < (percent += PERCENT_EMPLACE_HINT))
+        {
+            key_type key = rand() % MAX_KEY;
+            stdmap.emplace_hint(stdmap.upper_bound(key), key, 2*key);
+            xxlmap.emplace_hint(xxlmap.upper_bound(key), key, 2*key);
+
+            STXXL_CHECK(stxxl::there(stdmap, key, 2*key));
+            STXXL_CHECK(stxxl::there(xxlmap, key, 2*key));
         }
         // *********************************************************
         // The bulk insert function will be called
