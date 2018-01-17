@@ -243,13 +243,23 @@ public:
         return impl.insert(x);
     }
 
+    std::pair<iterator, bool> insert(value_type&& value)
+    {
+        return impl.insert(std::forward<value_type>(value));
+    }
+
+    void insert(std::initializer_list<value_type> ilist)
+    {
+        return impl.insert(std::move(ilist));
+    }
+
     template <class... Args>
     std::pair<iterator, bool> emplace(Args&&... args)
     {
         return impl.emplace(std::forward<Args>(args)...);
     }
 
-    iterator insert(iterator pos, const value_type& x)
+    iterator insert(const_iterator pos, const value_type& x)
     {
         return impl.insert(pos, x);
     }
