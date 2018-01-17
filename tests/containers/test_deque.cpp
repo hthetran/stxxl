@@ -28,13 +28,17 @@ int main(int argc, char* argv[])
     stxxl::deque<int>::const_iterator b = Deque.begin();
     stxxl::deque<int>::const_iterator e = Deque.end();
     STXXL_CHECK(b == e);
-    Deque.push_front(1);
-    Deque.push_front(2);
+    Deque.emplace_front(4);
     Deque.push_front(3);
+    Deque.push_front(2);
+    Deque.push_front(1);
     b = Deque.begin();
     STXXL_CHECK(b != e);
     Deque.push_back(5);
+    Deque.emplace_back(6);
     std::copy(Deque.begin(), Deque.end(), std::ostream_iterator<int>(std::cout, " "));
+    STXXL_CHECK(stxxl::is_sorted(Deque.begin(), Deque.end()));
+    STXXL_CHECK(Deque.size() == 6);
 
     stxxl::random_number32 rand;
     stxxl::deque<int> XXLDeque;
