@@ -10,6 +10,7 @@
  *  http://www.boost.org/LICENSE_1_0.txt)
  **************************************************************************/
 
+#include <stxxl/bits/common/comparator.h>
 #include <stxxl/bits/containers/btree/btree.h>
 #include <stxxl/random_shuffle>
 #include <stxxl/scan>
@@ -19,17 +20,7 @@
 #include <ctime>
 #include <iostream>
 
-struct comp_type : public std::less<int>
-{
-    static int max_value()
-    {
-        return std::numeric_limits<int>::max();
-    }
-    static int min_value()
-    {
-        return std::numeric_limits<int>::min();
-    }
-};
+using comp_type = stxxl::comparator<int>;
 using btree_type = stxxl::btree::btree<
           int, double, comp_type, 4096, 4096, foxxll::simple_random>;
 //using btree_type =  stxxl::btree::btree<int,double,comp_type,10,11,foxxll::simple_random> ;
