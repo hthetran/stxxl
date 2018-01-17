@@ -326,6 +326,27 @@ public:
 
     //! \}
 
+    //! \name Element access
+    //! \{
+
+    //! Returns a reference to the mapped value of the element with
+    //! key equivalent to key. If no such element exists, an exception
+    //! of type std::out_of_range is thrown.
+    data_type& at(const key_type& k)
+    {
+        return impl.at(k);
+    }
+
+    //! Returns a reference to the mapped value of the element with
+    //! key equivalent to key. If no such element exists, an exception
+    //! of type std::out_of_range is thrown.
+    const data_type& at(const key_type& k) const
+    {
+        return impl.at(k);
+    }
+
+    //! \}
+
     //! \name Operators
     //! \{
 

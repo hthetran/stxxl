@@ -17,6 +17,7 @@
 //! \example containers/test_map_random.cpp
 //! This is an example of use of \c stxxl::map container.
 
+#include <tlx/die.hpp>
 #include <stxxl/map>
 
 #include "map_test_handlers.h"
@@ -312,7 +313,7 @@ int main(int argc, char* argv[])
             }
         }
         // *********************************************************
-        // The find function will be called
+        // The find and at function will be called
         // *********************************************************
         else if (step < (percent += PERCENT_FIND))
         {
@@ -331,6 +332,11 @@ int main(int argc, char* argv[])
                 STXXL_CHECK(stxxl::is_end(stdmap, stditer) == stxxl::is_end(xxlmap, xxliter));
                 if (!stxxl::is_end(stdmap, stditer)) {
                     STXXL_CHECK(stxxl::is_same(*(stditer), *(xxliter)));
+                    STXXL_CHECK(stdmap.at(key1) == xxlmap.at(key1));
+                } else
+                {
+                    die_unless_throws(stdmap.at(key1), std::out_of_range);
+                    die_unless_throws(xxlmap.at(key1), std::out_of_range);
                 }
 
                 key1++;
