@@ -506,6 +506,32 @@ public:
 
     std::pair<iterator, bool> insert(const value_type& x)
     {
+        return insert_impl(x);
+    }
+
+    std::pair<iterator, bool> insert(value_type&& x)
+    {
+        return insert_impl(x);
+    }
+
+    void insert(std::initializer_list<value_type> ilist)
+    {
+        for (auto&& val : ilist)
+        {
+            insert_impl(std::forward<decltype(val)>(val));
+        }
+    }
+
+    template <class... Args>
+    std::pair<iterator, bool> emplace(Args&&... args)
+    {
+        return insert_impl(value_type(std::forward<Args>(args)...));
+    }
+
+private:
+    template <typename V>
+    std::pair<iterator, bool> insert_impl(V&& x)
+    {
         root_node_iterator_type it = m_root_node.lower_bound(x.first);
         assert(!m_root_node.empty());
         assert(it != m_root_node.end());
@@ -516,7 +542,7 @@ public:
             leaf_type* leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(leaf);
             std::pair<key_type, leaf_bid_type> splitter;
-            std::pair<iterator, bool> result = leaf->insert(x, splitter);
+            std::pair<iterator, bool> result = leaf->insert(std::forward<V>(x), splitter);
             if (result.second)
                 ++m_size;
 
@@ -541,7 +567,7 @@ public:
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
         std::pair<key_type, node_bid_type> splitter;
-        std::pair<iterator, bool> result = node->insert(x, m_height - 1, splitter);
+        std::pair<iterator, bool> result = node->insert(std::forward<V>(x), m_height - 1, splitter);
         if (result.second)
             ++m_size;
 
@@ -562,12 +588,7 @@ public:
         return result;
     }
 
-    template <class... Args>
-    std::pair<iterator, bool> emplace(Args&&... args)
-    {
-        return insert(value_type(std::forward<Args>(args)...));
-    }
-
+public:
     iterator begin()
     {
         root_node_iterator_type it = m_root_node.begin();
@@ -981,7 +1002,7 @@ public:
         assert(size() == old_size - 1);
     }
 
-    iterator insert(iterator /*pos*/, const value_type& x)
+    iterator insert(const_iterator /*pos*/, const value_type& x)
     {
         // pos ignored in the current version
         return insert(x).first;
