@@ -511,7 +511,7 @@ public:
 
     std::pair<iterator, bool> insert(value_type&& x)
     {
-        return insert_impl(x);
+        return insert_impl(std::forward<value_type>(x));
     }
 
     void insert(std::initializer_list<value_type> ilist)
