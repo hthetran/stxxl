@@ -14,6 +14,7 @@
 #include <stxxl/random_shuffle>
 #include <stxxl/scan>
 #include <stxxl/sort>
+#include <tlx/die.hpp>
 
 #include <ctime>
 #include <iostream>
@@ -113,6 +114,8 @@ int main(int argc, char* argv[])
     {
         btree_type::iterator bIt = BTree.find(*vIt);
         STXXL_CHECK(bIt != BTree.end());
+        // check at() finds it, too
+        STXXL_CHECK(BTree.at(*vIt) == bIt->second);
         // erasing non-existent element
         STXXL_CHECK(BTree.erase((*vIt) + 1) == 0);
         // erasing existing element
@@ -121,6 +124,8 @@ int main(int argc, char* argv[])
         STXXL_CHECK(BTree.find(*vIt) == BTree.end());
         // trying to erase it again
         STXXL_CHECK(BTree.erase(*vIt) == 0);
+        // checking at() throws for non-existing element
+        die_unless_throws(BTree.at(*vIt), std::out_of_range);
     }
 
     STXXL_CHECK(BTree.empty());

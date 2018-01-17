@@ -638,6 +638,36 @@ public:
         return (*((insert(value_type(k, data_type()))).first)).second;
     }
 
+    //! Returns a reference to the mapped value of the element with
+    //! key equivalent to key. If no such element exists, an exception
+    //! of type std::out_of_range is thrown.
+    data_type& at(const key_type& k)
+    {
+        iterator it = find(k);
+
+        if (UNLIKELY(it == end()))
+        {
+            throw std::out_of_range("stxxl::btree");
+        }
+
+        return it->second;
+    }
+
+    //! Returns a reference to the mapped value of the element with
+    //! key equivalent to key. If no such element exists, an exception
+    //! of type std::out_of_range is thrown.
+    const data_type& at(const key_type& k) const
+    {
+        const_iterator it = find(k);
+
+        if (UNLIKELY(it == end()))
+        {
+            throw std::out_of_range("stxxl::btree");
+        }
+
+        return it->second;
+    }
+
     iterator find(const key_type& k)
     {
         root_node_iterator_type it = m_root_node.lower_bound(k);
