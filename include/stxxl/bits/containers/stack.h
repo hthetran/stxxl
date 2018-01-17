@@ -160,6 +160,22 @@ public:
     //! non-copyable: delete assignment operator
     normal_stack& operator = (const normal_stack&) = delete;
 
+    //! move-constructor
+    normal_stack(normal_stack&& o) noexcept : normal_stack() {
+        swap(o);
+    }
+
+    //! move assignment operator
+    normal_stack& operator = (normal_stack&& obj) noexcept
+    {
+        if (&obj != this)
+        {
+            normal_stack tmp(std::forward<normal_stack>(obj));
+            this->swap(tmp);
+        }
+        return *this;
+    }
+
     virtual ~normal_stack()
     {
         STXXL_VERBOSE(STXXL_PRETTY_FUNCTION_NAME);
@@ -437,6 +453,22 @@ public:
     grow_shrink_stack(const grow_shrink_stack&) = delete;
     //! non-copyable: delete assignment operator
     grow_shrink_stack& operator = (const grow_shrink_stack&) = delete;
+
+    //! move-constructor
+    grow_shrink_stack(grow_shrink_stack&& o) noexcept : grow_shrink_stack() {
+        swap(o);
+    }
+
+    //! move assignment operator
+    grow_shrink_stack& operator = (grow_shrink_stack&& obj) noexcept
+    {
+        if (&obj != this)
+        {
+            grow_shrink_stack tmp(std::forward<grow_shrink_stack>(obj));
+            this->swap(tmp);
+        }
+        return *this;
+    }
 
     virtual ~grow_shrink_stack()
     {
@@ -949,6 +981,23 @@ public:
     migrating_stack(const migrating_stack&) = delete;
     //! non-copyable: delete assignment operator
     migrating_stack& operator = (const migrating_stack&) = delete;
+
+    //! move-constructor
+    migrating_stack(migrating_stack&& o) noexcept : migrating_stack() {
+        swap(o);
+    }
+
+    //! move assignment operator
+    migrating_stack& operator = (migrating_stack&& obj) noexcept
+    {
+        if (&obj != this)
+        {
+            migrating_stack tmp(std::forward<migrating_stack>(obj));
+            this->swap(tmp);
+        }
+        return *this;
+    }
+
 
     virtual ~migrating_stack()
     {

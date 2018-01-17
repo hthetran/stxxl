@@ -113,6 +113,38 @@ void simple_test(stack_type& my_stack, size_t test_size)
     test_lvalue_correctness(my_stack, 4 * STXXL_DEFAULT_BLOCK_SIZE(size_t) / 4 * 2, 4 * STXXL_DEFAULT_BLOCK_SIZE(size_t) / 4 * 2 * 20);
 }
 
+template <typename stack_type>
+void test_move(stack_type&& my_stack)
+{
+    size_t test_size = 2048;
+
+    for (size_t i = 0; i < test_size; ++i)
+    {
+        my_stack.emplace(i);
+    }
+
+    stack_type stack_moved(std::move(my_stack));
+
+    for (size_t i = test_size; i > 0;)
+    {
+        --i;
+        STXXL_CHECK(stack_moved.top() == i);
+        stack_moved.pop();
+        STXXL_CHECK(stack_moved.size() == i);
+    }
+
+    stack_moved.push(42);
+
+    my_stack = std::move(stack_moved);
+
+    STXXL_CHECK(my_stack.top() == 42);
+    STXXL_CHECK(my_stack.size() == 1);
+
+    my_stack.pop();
+
+    STXXL_CHECK(my_stack.empty());
+}
+
 int main(int argc, char* argv[])
 {
     using ext_normal_stack_type = stxxl::STACK_GENERATOR<
@@ -145,6 +177,11 @@ int main(int argc, char* argv[])
         ext_stack_type my_stack;
         simple_test(my_stack, atoi(argv[1]) * STXXL_DEFAULT_BLOCK_SIZE(int) / sizeof(int));
     }
+
+    test_move<ext_normal_stack_type>(ext_normal_stack_type());
+    test_move<ext_migrating_stack_type>(ext_migrating_stack_type());
+    test_move<ext_stack_type>(ext_stack_type());
+
     {
         // prefetch/write pool with 10 blocks prefetching and 10 block write cache (> D is recommended)
         foxxll::read_write_pool<ext_stack_type2::block_type> pool(10, 10);
