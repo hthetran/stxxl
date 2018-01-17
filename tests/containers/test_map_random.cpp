@@ -256,11 +256,11 @@ int main(int argc, char* argv[])
             stdmap.insert(v2.begin(), v2.end());
             xxlmap.insert(v2.begin(), v2.end());
 
-            for (unsigned i = lower; i < upper; i++)
-                STXXL_CHECK(stxxl::there(stdmap, i, 2 * i));
+            for (unsigned j = lower; j < upper; j++)
+                STXXL_CHECK(stxxl::there(stdmap, j, 2 * j));
 
-            for (unsigned i = lower; i < upper; i++)
-                STXXL_CHECK(stxxl::there(xxlmap, i, 2 * i));
+            for (unsigned j = lower; j < upper; j++)
+                STXXL_CHECK(stxxl::there(xxlmap, j, 2 * j));
         }
         // *********************************************************
         // The lower_bound function will be called
