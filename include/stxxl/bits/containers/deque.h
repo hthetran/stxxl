@@ -480,6 +480,22 @@ public:
     //! non-copyable: delete assignment operator
     deque& operator = (const deque&) = delete;
 
+    //! move-constructor
+    deque(deque&& o) noexcept : deque() {
+        swap(o);
+    }
+
+    //! move assignment operator
+    deque& operator = (deque&& obj) noexcept
+    {
+        if (&obj != this)
+        {
+            deque tmp(std::forward<deque>(obj));
+            this->swap(tmp);
+        }
+        return *this;
+    }
+
     ~deque()      // empty so far
     { }
 
