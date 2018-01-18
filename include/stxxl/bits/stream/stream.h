@@ -1238,6 +1238,7 @@ public:
 #include <stxxl/bits/stream/choose.h>
 #include <stxxl/bits/stream/materialize.h>
 #include <stxxl/bits/stream/unique.h>
+#include <stxxl/bits/stream/range.h>
 
 #endif // !STXXL_STREAM_STREAM_HEADER
 // vim: et:ts=4:sw=4
