@@ -45,6 +45,11 @@ struct element  // 24 bytes, not a power of 2 intentionally
     {
         return key == e2.key && load0 == e2.load0 && load1 == e2.load1;
     }
+
+    bool operator < (const element& e2) const
+    {
+        return std::tie(key, load0, load1) < std::tie(e2.key, e2.load0, e2.load1);
+    }
 };
 
 struct counter
