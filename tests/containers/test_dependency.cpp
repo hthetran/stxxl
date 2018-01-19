@@ -29,14 +29,23 @@ struct MinimalType {
     explicit MinimalType(size_t a = 0) : a(a) { }
 };
 
-struct MinimalTypeWithEq : public MinimalType {
-    size_t a;
-
-    explicit MinimalTypeWithEq(size_t a = 0) : a(a) { }
+struct MinimalTypeWithEq : public MinimalType
+{
+    explicit MinimalTypeWithEq(size_t a = 0) : MinimalType(a) { }
 
     bool operator == (const MinimalType o) const
     {
         return a == o.a;
+    }
+};
+
+struct MinimalTypeWithEqAndLess : public MinimalTypeWithEq
+{
+    explicit MinimalTypeWithEqAndLess(size_t a = 0) : MinimalTypeWithEq(a) { }
+
+    bool operator < (const MinimalTypeWithEqAndLess& o) const
+    {
+        return a < o.a;
     }
 };
 
@@ -82,7 +91,7 @@ template class stxxl::priority_queue<
         stxxl::priority_queue_config<MinimalType, CompareLessWithMin<MinimalType>, 32ul, 256ul, 16ul, 2ul, 16384ul, 16ul, 2ul, foxxll::random_cyclic>
         >;
 
-template class stxxl::vector<MinimalType>;
+template class stxxl::vector<MinimalTypeWithEqAndLess>;
 
 template class stxxl::sorter<MinimalType, CompareLessWithMinMax<MinimalType> >;
 
