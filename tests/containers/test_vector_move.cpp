@@ -12,6 +12,8 @@
 
 #define STXXL_DEFAULT_BLOCK_SIZE(T) 4096
 
+#include <tlx/die.hpp>
+
 #include <stxxl/vector>
 
 using vector_type = stxxl::vector<int>;
@@ -30,10 +32,10 @@ int main()
     vector_type moved_vector = std::move(vector);
 
     for (int i = 0; i < 1<<20; ++i) {
-        STXXL_CHECK_EQUAL(i, moved_vector[static_cast<size_t>(i)]);
+        die_unequal(i, moved_vector[static_cast<size_t>(i)]);
     }
 
-    STXXL_CHECK(vector.empty());
+    die_unless(vector.empty());
 
     vector_type target_vector;
 
@@ -42,10 +44,10 @@ int main()
     target_vector = std::move(moved_vector);
 
     for (int i = 0; i < 1<<20; ++i) {
-        STXXL_CHECK_EQUAL(i, target_vector[static_cast<size_t>(i)]);
+        die_unequal(i, target_vector[static_cast<size_t>(i)]);
     }
 
-    STXXL_CHECK(moved_vector.empty());
+    die_unless(moved_vector.empty());
 
     return 0;
 }

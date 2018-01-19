@@ -24,8 +24,14 @@
 
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <limits>
+#include <random>
 
+#include <tlx/die.hpp>
+#include <tlx/logger.hpp>
+
+#include <stxxl/bits/defines.h>
 #include <stxxl/scan>
 #include <stxxl/sort>
 #include <stxxl/stream>
@@ -37,7 +43,7 @@ const unsigned long long megabyte = 1024 * 1024;
 #define MAGIC 123
 
 using KeyType = uint64_t;
-constexpr size_t RecordSize = 2*sizeof(KeyType) + 0;
+constexpr size_t RecordSize = 2 * sizeof(KeyType) + 0;
 using my_type = key_with_padding<KeyType, RecordSize, false>;
 using cmp_less_key = my_type::compare_less;
 
@@ -45,13 +51,13 @@ size_t run_size;
 size_t buffer_size;
 constexpr int block_size = STXXL_DEFAULT_BLOCK_SIZE(my_type);
 
-using vector_type = stxxl::vector<my_type, 4, stxxl::lru_pager<8>, block_size, STXXL_DEFAULT_ALLOC_STRATEGY>;
+using vector_type = stxxl::vector<my_type, 4, stxxl::lru_pager<8>, block_size, foxxll::default_alloc_strategy>;
 
 my_type::key_type checksum(vector_type& input)
 {
     my_type::key_type sum = 0;
 
-    for(const auto& v : input)
+    for (const auto& v : input)
         sum += v.key;
 
     return sum;
@@ -73,7 +79,7 @@ void linear_sort_normal(vector_type& input)
 
     std::cout << sum1 << " ?= " << sum2 << std::endl;
 
-    STXXL_CHECK(stxxl::is_sorted(input.cbegin(), input.cend()));
+    die_unless(stxxl::is_sorted(input.cbegin(), input.cend()));
 
     std::cout << "Linear sorting normal took " << (stop - start) << " seconds." << std::endl;
 }
@@ -94,7 +100,7 @@ void linear_sort_streamed(vector_type& input, vector_type& output)
     sort_stream_type sort_stream(input_stream, cmp_less_key(), run_size);
 
     vector_type::iterator o = stxxl::stream::materialize(sort_stream, output.begin(), output.end());
-    STXXL_CHECK(o == output.end());
+    die_unless(o == output.end());
 
     double stop = foxxll::timestamp();
     std::cout << foxxll::stats_data(*foxxll::stats::get_instance()) - stats_begin;
@@ -103,9 +109,9 @@ void linear_sort_streamed(vector_type& input, vector_type& output)
 
     std::cout << sum1 << " ?= " << sum2 << std::endl;
     if (sum1 != sum2)
-        STXXL_MSG("WRONG DATA");
+        LOG1 << "WRONG DATA";
 
-    STXXL_CHECK(stxxl::is_sorted(output.cbegin(), output.cend(), cmp_less_key()));
+    die_unless(stxxl::is_sorted(output.cbegin(), output.cend(), cmp_less_key()));
 
     std::cout << "Linear sorting streamed took " << (stop - start) << " seconds." << std::endl;
 }
@@ -120,7 +126,7 @@ int main(int argc, const char** argv)
     foxxll::config::get_instance();
 
 #if STXXL_PARALLEL_MULTIWAY_MERGE
-    STXXL_MSG("STXXL_PARALLEL_MULTIWAY_MERGE");
+    LOG1 << "STXXL_PARALLEL_MULTIWAY_MERGE";
 #endif
     unsigned long megabytes_to_process = atoi(argv[1]);
     int p = atoi(argv[2]);
@@ -168,7 +174,7 @@ int main(int argc, const char** argv)
     parallel_settings.multiway_merge_minimal_k = 2;
 
     __gnu_parallel::_Settings::set(parallel_settings);
-    STXXL_CHECK(&__gnu_parallel::_Settings::get() != &parallel_settings);
+    die_unless(&__gnu_parallel::_Settings::get() != &parallel_settings);
 
     if (0)
         printf("%d %p: mwms %d, q %d, qb %d",
@@ -192,14 +198,20 @@ int main(int argc, const char** argv)
     foxxll::stats_data stats_begin(*foxxll::stats::get_instance());
     double generate_start = foxxll::timestamp();
 
-    stxxl::generate(input.begin(), input.end(), stxxl::random_number64(), memory_to_use / STXXL_DEFAULT_BLOCK_SIZE(my_type));
+    {
+        std::mt19937_64 randgen(p);
+        std::uniform_int_distribution<KeyType> distr;
+        stxxl::generate(input.begin(), input.end(),
+                        [&]() -> my_type { return my_type(distr(randgen)); },
+                        memory_to_use / STXXL_DEFAULT_BLOCK_SIZE(my_type));
+    }
 
     double generate_stop = foxxll::timestamp();
     std::cout << foxxll::stats_data(*foxxll::stats::get_instance()) - stats_begin;
 
     std::cout << "Generating took " << (generate_stop - generate_start) << " seconds." << std::endl;
 
-    STXXL_CHECK(!stxxl::is_sorted(input.cbegin(), input.cend()));
+    die_unless(!stxxl::is_sorted(input.cbegin(), input.cend()));
 
     {
         vector_type output(n_records);

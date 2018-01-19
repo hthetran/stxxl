@@ -1,5 +1,5 @@
 /***************************************************************************
- *  tests/containers/map_test_handlers.h
+ *  tests/include/map_test_handlers.h
  *
  *  Part of the STXXL. See http://stxxl.org
  *
@@ -27,12 +27,14 @@ namespace stxxl {
 template <typename MAPTYPE>
 bool there(const MAPTYPE& map_, const typename MAPTYPE::key_type& key, const typename MAPTYPE::mapped_type& data)
 {
+    constexpr bool debug = false;
+
     typename MAPTYPE::const_iterator iter = map_.find(key);
     if (!(iter->second == data))
     {
-        STXXL_VERBOSE2("iter=(" << (*iter).first << ":" << (*iter).second << ")");
-        STXXL_VERBOSE2("key=" << key);
-        STXXL_VERBOSE2("data=" << data);
+        LOG << "iter=(" << (*iter).first << ":" << (*iter).second << ")";
+        LOG << "key=" << key;
+        LOG << "data=" << data;
         return false;
     }
     return true;

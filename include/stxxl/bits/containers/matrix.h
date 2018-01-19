@@ -13,15 +13,17 @@
 #ifndef STXXL_CONTAINERS_MATRIX_HEADER
 #define STXXL_CONTAINERS_MATRIX_HEADER
 
-#include <stxxl/bits/containers/vector.h>
-#include <foxxll/mng/block_scheduler.hpp>
-#include <stxxl/bits/containers/matrix_arithmetic.h>
-
-#include <tlx/counting_ptr.hpp>
-
 #include <algorithm>
 #include <vector>
 #include <utility>
+
+#include <tlx/counting_ptr.hpp>
+#include <tlx/logger.hpp>
+
+#include <foxxll/mng/block_scheduler.hpp>
+
+#include <stxxl/bits/containers/vector.h>
+#include <stxxl/bits/containers/matrix_arithmetic.h>
 
 namespace stxxl {
 
@@ -54,8 +56,8 @@ template <typename ValueType>
 class column_vector : public vector<ValueType>
 {
 public:
-    using vector_type =  vector<ValueType> ;
-    using size_type =  typename vector_type::size_type ;
+    using vector_type =  vector<ValueType>;
+    using size_type =  typename vector_type::size_type;
 
     using vector_type::size;
 
@@ -125,8 +127,8 @@ template <typename ValueType>
 class row_vector : public vector<ValueType>
 {
 public:
-    using vector_type =  vector<ValueType> ;
-    using size_type =  typename vector_type::size_type ;
+    using vector_type =  vector<ValueType>;
+    using size_type =  typename vector_type::size_type;
 
     using vector_type::size;
 
@@ -211,7 +213,7 @@ template <typename ValueType, unsigned BlockSideLength>
 class matrix_swappable_block : public foxxll::swappable_block<ValueType, BlockSideLength* BlockSideLength>
 {
 public:
-    using internal_block_type =  typename foxxll::swappable_block<ValueType, BlockSideLength* BlockSideLength>::internal_block_type ;
+    using internal_block_type =  typename foxxll::swappable_block<ValueType, BlockSideLength* BlockSideLength>::internal_block_type;
 
     using foxxll::swappable_block<ValueType, BlockSideLength* BlockSideLength>::get_internal_block;
 
@@ -237,12 +239,12 @@ template <typename ValueType, unsigned BlockSideLength>
 class swappable_block_matrix : public tlx::reference_counter
 {
 public:
-    using size_type =  size_t ;
-    using elem_size_type =  size_t ;
-    using block_scheduler_type =  foxxll::block_scheduler<matrix_swappable_block<ValueType, BlockSideLength> > ;
-    using swappable_block_identifier_type =  typename block_scheduler_type::swappable_block_identifier_type ;
-    using blocks_type =  std::vector<swappable_block_identifier_type> ;
-    using Ops =  matrix_local::matrix_operations<ValueType, BlockSideLength> ;
+    using size_type =  size_t;
+    using elem_size_type =  size_t;
+    using block_scheduler_type =  foxxll::block_scheduler<matrix_swappable_block<ValueType, BlockSideLength> >;
+    using swappable_block_identifier_type =  typename block_scheduler_type::swappable_block_identifier_type;
+    using blocks_type =  std::vector<swappable_block_identifier_type>;
+    using Ops =  matrix_local::matrix_operations<ValueType, BlockSideLength>;
 
     block_scheduler_type& bs;
 
@@ -431,12 +433,12 @@ template <typename ValueType, unsigned BlockSideLength>
 class matrix_iterator
 {
 protected:
-    using matrix_type =  matrix<ValueType, BlockSideLength> ;
-    using swappable_block_matrix_type =  typename matrix_type::swappable_block_matrix_type ;
-    using block_scheduler_type =  typename matrix_type::block_scheduler_type ;
-    using internal_block_type =  typename block_scheduler_type::internal_block_type ;
-    using elem_size_type =  typename matrix_type::elem_size_type ;
-    using block_size_type =  typename matrix_type::block_size_type ;
+    using matrix_type =  matrix<ValueType, BlockSideLength>;
+    using swappable_block_matrix_type =  typename matrix_type::swappable_block_matrix_type;
+    using block_scheduler_type =  typename matrix_type::block_scheduler_type;
+    using internal_block_type =  typename block_scheduler_type::internal_block_type;
+    using elem_size_type =  typename matrix_type::elem_size_type;
+    using block_size_type =  typename matrix_type::block_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -593,9 +595,9 @@ template <typename ValueType, unsigned BlockSideLength>
 class matrix_row_major_iterator : public matrix_iterator<ValueType, BlockSideLength>
 {
 protected:
-    using matrix_iterator_type =  matrix_iterator<ValueType, BlockSideLength> ;
-    using matrix_type =  typename matrix_iterator_type::matrix_type ;
-    using elem_size_type =  typename matrix_iterator_type::elem_size_type ;
+    using matrix_iterator_type =  matrix_iterator<ValueType, BlockSideLength>;
+    using matrix_type =  typename matrix_iterator_type::matrix_type;
+    using elem_size_type =  typename matrix_iterator_type::elem_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -659,9 +661,9 @@ template <typename ValueType, unsigned BlockSideLength>
 class matrix_col_major_iterator : public matrix_iterator<ValueType, BlockSideLength>
 {
 protected:
-    using matrix_iterator_type =  matrix_iterator<ValueType, BlockSideLength> ;
-    using matrix_type =  typename matrix_iterator_type::matrix_type ;
-    using elem_size_type =  typename matrix_iterator_type::elem_size_type ;
+    using matrix_iterator_type =  matrix_iterator<ValueType, BlockSideLength>;
+    using matrix_type =  typename matrix_iterator_type::matrix_type;
+    using elem_size_type =  typename matrix_iterator_type::elem_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -725,12 +727,12 @@ template <typename ValueType, unsigned BlockSideLength>
 class const_matrix_iterator
 {
 protected:
-    using matrix_type =  matrix<ValueType, BlockSideLength> ;
-    using swappable_block_matrix_type =  typename matrix_type::swappable_block_matrix_type ;
-    using block_scheduler_type =  typename matrix_type::block_scheduler_type ;
-    using internal_block_type =  typename block_scheduler_type::internal_block_type ;
-    using elem_size_type =  typename matrix_type::elem_size_type ;
-    using block_size_type =  typename matrix_type::block_size_type ;
+    using matrix_type =  matrix<ValueType, BlockSideLength>;
+    using swappable_block_matrix_type =  typename matrix_type::swappable_block_matrix_type;
+    using block_scheduler_type =  typename matrix_type::block_scheduler_type;
+    using internal_block_type =  typename block_scheduler_type::internal_block_type;
+    using elem_size_type =  typename matrix_type::elem_size_type;
+    using block_size_type =  typename matrix_type::block_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -896,9 +898,9 @@ template <typename ValueType, unsigned BlockSideLength>
 class const_matrix_row_major_iterator : public const_matrix_iterator<ValueType, BlockSideLength>
 {
 protected:
-    using const_matrix_iterator_type =  const_matrix_iterator<ValueType, BlockSideLength> ;
-    using matrix_type =  typename const_matrix_iterator_type::matrix_type ;
-    using elem_size_type =  typename const_matrix_iterator_type::elem_size_type ;
+    using const_matrix_iterator_type =  const_matrix_iterator<ValueType, BlockSideLength>;
+    using matrix_type =  typename const_matrix_iterator_type::matrix_type;
+    using elem_size_type =  typename const_matrix_iterator_type::elem_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -966,9 +968,9 @@ template <typename ValueType, unsigned BlockSideLength>
 class const_matrix_col_major_iterator : public const_matrix_iterator<ValueType, BlockSideLength>
 {
 protected:
-    using const_matrix_iterator_type =  const_matrix_iterator<ValueType, BlockSideLength> ;
-    using matrix_type =  typename const_matrix_iterator_type::matrix_type ;
-    using elem_size_type =  typename const_matrix_iterator_type::elem_size_type ;
+    using const_matrix_iterator_type =  const_matrix_iterator<ValueType, BlockSideLength>;
+    using matrix_type =  typename const_matrix_iterator_type::matrix_type;
+    using elem_size_type =  typename const_matrix_iterator_type::elem_size_type;
 
     template <typename VT, unsigned BSL>
     friend class matrix;
@@ -1290,7 +1292,7 @@ public:
                 Ops::multi_level_strassen_winograd_multiply_and_add_block_grained(*data, *right.data, *res.data);
                 break;
             default:
-                STXXL_ERRMSG("invalid multiplication-algorithm number");
+                LOG1 << "invalid multiplication-algorithm number";
                 break;
             }
         }
@@ -1309,7 +1311,7 @@ public:
                 new foxxll::block_scheduler_algorithm_offline_lru_prefetching<swappable_block_type>(data->bs));
             break;
         default:
-            STXXL_ERRMSG("invalid scheduling-algorithm number");
+            LOG1 << "invalid scheduling-algorithm number";
         }
         switch (multiplication_algorithm)
         {
@@ -1335,7 +1337,7 @@ public:
             Ops::multi_level_strassen_winograd_multiply_and_add_block_grained(*data, *right.data, *res.data);
             break;
         default:
-            STXXL_ERRMSG("invalid multiplication-algorithm number");
+            LOG1 << "invalid multiplication-algorithm number";
             break;
         }
         delete data->bs.switch_algorithm_to(
@@ -1372,7 +1374,7 @@ public:
                 new foxxll::block_scheduler_algorithm_offline_lru_prefetching<swappable_block_type>(data->bs));
             break;
         default:
-            STXXL_ERRMSG("invalid scheduling-algorithm number");
+            LOG1 << "invalid scheduling-algorithm number";
         }
         multiply_internal(right, res);
         delete data->bs.switch_algorithm_to(

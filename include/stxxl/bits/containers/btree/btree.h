@@ -13,6 +13,12 @@
 #ifndef STXXL_CONTAINERS_BTREE_BTREE_HEADER
 #define STXXL_CONTAINERS_BTREE_BTREE_HEADER
 
+#include <algorithm>
+#include <limits>
+#include <map>
+#include <utility>
+#include <vector>
+
 #include <stxxl/bits/containers/btree/iterator.h>
 #include <stxxl/bits/containers/btree/iterator_map.h>
 #include <stxxl/bits/containers/btree/leaf.h>
@@ -20,11 +26,6 @@
 #include <stxxl/bits/containers/btree/node_cache.h>
 #include <stxxl/bits/containers/btree/root_node.h>
 #include <stxxl/vector>
-
-#include <algorithm>
-#include <limits>
-#include <map>
-#include <utility>
 
 namespace stxxl {
 namespace btree {
@@ -38,6 +39,8 @@ template <class KeyType,
           >
 class btree
 {
+    static constexpr bool debug = false;
+
 public:
     using key_type = KeyType;
     using data_type = DataType;
@@ -107,13 +110,13 @@ private:
 
     void insert_into_root(const std::pair<key_type, node_bid_type>& splitter)
     {
-        std::pair<root_node_iterator_type, bool> result =
-            m_root_node.insert(splitter);
-        STXXL_ASSERT(result.second == true);
+        std::pair<root_node_iterator_type, bool> result = m_root_node.insert(splitter);
+        assert(result.second);
+        tlx::unused(result);
 
         if (m_root_node.size() > max_node_size) // root overflow
         {
-            STXXL_VERBOSE1("btree::insert_into_root, overflow happened, splitting");
+            LOG << "btree::insert_into_root, overflow happened, splitting";
 
             node_bid_type left_bid;
             node_type* left_node = m_node_cache.get_new_node(left_bid);
@@ -159,11 +162,11 @@ private:
             m_root_node.insert(root_node_pair_type(right_key, right_bid));
 
             ++m_height;
-            STXXL_VERBOSE1("btree Increasing height to " << m_height);
+            LOG << "btree Increasing height to " << m_height;
             if (m_node_cache.size() < (m_height - 1))
             {
-                STXXL_THROW2(std::runtime_error, "btree::bulk_construction",
-                             "The height of the tree (" << m_height << ") has exceeded the required capacity (" << (m_node_cache.size() + 1) << ") of the node cache. Increase the node cache size.");
+                FOXXLL_THROW2(std::runtime_error, "btree::bulk_construction",
+                              "The height of the tree (" << m_height << ") has exceeded the required capacity (" << (m_node_cache.size() + 1) << ") of the node cache. Increase the node cache size.");
             }
         }
     }
@@ -348,11 +351,11 @@ private:
 
             size_t nparents = foxxll::div_ceil(bids.size(), max_node_elements);
             assert(nparents >= 2);
-            STXXL_VERBOSE1("btree bulk construct"
-                           << " bids.size=" << bids.size()
-                           << " nparents=" << nparents
-                           << " max_node_elements=" << max_node_elements
-                           << " node_type::max_nelements=" << node_type::max_nelements());
+            LOG << "btree bulk construct"
+                << " bids.size=" << bids.size()
+                << " nparents=" << nparents
+                << " max_node_elements=" << max_node_elements
+                << " node_type::max_nelements=" << node_type::max_nelements();
 
             for (typename key_bid_vector_type::const_iterator it = bids.begin();
                  it != bids.end(); )
@@ -367,7 +370,7 @@ private:
                     node->push_back(*it);
                 }
 
-                STXXL_VERBOSE1("btree bulk construct node size : " << node->size() << " limits: " << node->min_nelements() << " " << node->max_nelements() << " max_node_elements: " << max_node_elements);
+                LOG << "btree bulk construct node size : " << node->size() << " limits: " << node->min_nelements() << " " << node->max_nelements() << " max_node_elements: " << max_node_elements;
 
                 if (node->underflows())
                 {
@@ -380,9 +383,9 @@ private:
                     if (left_node->size() + node->size() <= node->max_nelements())
                     {
                         // can fuse
-                        STXXL_VERBOSE1("btree bulk construct fuse last nodes:"
-                                       << " left_node.size=" << left_node->size()
-                                       << " node.size=" << node->size());
+                        LOG << "btree bulk construct fuse last nodes:"
+                            << " left_node.size=" << left_node->size()
+                            << " node.size=" << node->size();
 
                         node->fuse(*left_node);
                         m_node_cache.delete_node(parent_bids.back().second);
@@ -391,16 +394,16 @@ private:
                     else
                     {
                         // need to rebalance
-                        STXXL_VERBOSE1("btree bulk construct rebalance last nodes:"
-                                       << " left_node.size=" << left_node->size()
-                                       << " node.size=" << node->size());
+                        LOG << "btree bulk construct rebalance last nodes:"
+                            << " left_node.size=" << left_node->size()
+                            << " node.size=" << node->size();
 
                         const key_type new_splitter = node->balance(*left_node, false);
                         parent_bids.back().first = new_splitter;
 
-                        STXXL_VERBOSE1("btree bulk construct after rebalance:"
-                                       << " left_node.size=" << left_node->size()
-                                       << " node.size=" << node->size());
+                        LOG << "btree bulk construct after rebalance:"
+                            << " left_node.size=" << left_node->size()
+                            << " node.size=" << node->size();
 
                         assert(!left_node->overflows() && !left_node->underflows());
                     }
@@ -410,25 +413,25 @@ private:
                 parent_bids.push_back(key_bid_pair(node->back().first, new_bid));
             }
 
-            STXXL_VERBOSE1("btree parent_bids.size()=" << parent_bids.size()
-                                                       << " bids.size()=" << bids.size());
+            LOG << "btree parent_bids.size()=" << parent_bids.size()
+                << " bids.size()=" << bids.size();
 
             std::swap(parent_bids, bids);
 
             assert(nparents == bids.size() || (nparents - 1) == bids.size());
 
             ++m_height;
-            STXXL_VERBOSE1("Increasing height to " << m_height);
+            LOG << "Increasing height to " << m_height;
             if (m_node_cache.size() < (m_height - 1))
             {
-                STXXL_THROW2(std::runtime_error, "btree::bulk_construction",
-                             "The height of the tree (" << m_height << ") has exceeded the required capacity (" << (m_node_cache.size() + 1) << ") of the node cache. Increase the node cache size.");
+                FOXXLL_THROW2(std::runtime_error, "btree::bulk_construction",
+                              "The height of the tree (" << m_height << ") has exceeded the required capacity (" << (m_node_cache.size() + 1) << ") of the node cache. Increase the node cache size.");
             }
         }
 
         m_root_node.insert(bids.begin(), bids.end());
 
-        STXXL_VERBOSE1("btree bulk root_node_.size()=" << m_root_node.size());
+        LOG << "btree bulk root_node_.size()=" << m_root_node.size();
     }
 
 public:
@@ -442,13 +445,13 @@ public:
           m_prefetching_enabled(true),
           m_bm(foxxll::block_manager::get_instance())
     {
-        STXXL_VERBOSE1("Creating a btree, addr=" << this);
-        STXXL_VERBOSE1(" bytes in a node: " << node_bid_type::size);
-        STXXL_VERBOSE1(" bytes in a leaf: " << leaf_bid_type::size);
-        STXXL_VERBOSE1(" elements in a node: " << node_block_type::size);
-        STXXL_VERBOSE1(" elements in a leaf: " << leaf_block_type::size);
-        STXXL_VERBOSE1(" size of a node element: " << sizeof(typename node_block_type::value_type));
-        STXXL_VERBOSE1(" size of a leaf element: " << sizeof(typename leaf_block_type::value_type));
+        LOG << "Creating a btree, addr=" << this;
+        LOG << " bytes in a node: " << node_bid_type::size;
+        LOG << " bytes in a leaf: " << leaf_bid_type::size;
+        LOG << " elements in a node: " << node_block_type::size;
+        LOG << " elements in a leaf: " << leaf_block_type::size;
+        LOG << " size of a node element: " << sizeof(typename node_block_type::value_type);
+        LOG << " size of a leaf element: " << sizeof(typename leaf_block_type::value_type);
 
         create_empty_leaf();
     }
@@ -465,9 +468,9 @@ public:
           m_prefetching_enabled(true),
           m_bm(foxxll::block_manager::get_instance())
     {
-        STXXL_VERBOSE1("Creating a btree, addr=" << this);
-        STXXL_VERBOSE1(" bytes in a node: " << node_bid_type::size);
-        STXXL_VERBOSE1(" bytes in a leaf: " << leaf_bid_type::size);
+        LOG << "Creating a btree, addr=" << this;
+        LOG << " bytes in a node: " << node_bid_type::size;
+        LOG << " bytes in a leaf: " << leaf_bid_type::size;
 
         create_empty_leaf();
     }
@@ -538,7 +541,7 @@ private:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Inserting new value into a leaf");
+            LOG << "Inserting new value into a leaf";
             leaf_type* leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(leaf);
             std::pair<key_type, leaf_bid_type> splitter;
@@ -553,7 +556,7 @@ private:
                 return result;
             // no overflow/splitting happened
 
-            STXXL_VERBOSE1("Inserting new value into root node");
+            LOG << "Inserting new value into root node";
 
             insert_into_root(std::make_pair(splitter.first, node_bid_type(splitter.second)));
 
@@ -563,7 +566,7 @@ private:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Inserting new value into a node");
+        LOG << "Inserting new value into a node";
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
         std::pair<key_type, node_bid_type> splitter;
@@ -578,7 +581,7 @@ private:
             return result;
         // no overflow/splitting happened
 
-        STXXL_VERBOSE1("Inserting new value into root node");
+        LOG << "Inserting new value into root node";
 
         insert_into_root(splitter);
 
@@ -596,7 +599,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("btree: retrieving begin() from the first leaf");
+            LOG << "btree: retrieving begin() from the first leaf";
             leaf_type* leaf = m_leaf_cache.get_node((leaf_bid_type)it->second);
             assert(leaf);
 
@@ -606,7 +609,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("btree: retrieving begin() from the first node");
+        LOG << "btree: retrieving begin() from the first node";
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
         iterator result = node->begin(m_height - 1);
@@ -625,7 +628,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("btree: retrieving begin() from the first leaf");
+            LOG << "btree: retrieving begin() from the first leaf";
             const leaf_type* leaf = m_leaf_cache.get_const_node((leaf_bid_type)it->second);
             assert(leaf);
             assert(m_leaf_cache.nfixed() == 0);
@@ -634,7 +637,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("btree: retrieving begin() from the first node");
+        LOG << "btree: retrieving begin() from the first node";
         const node_type* node = m_node_cache.get_const_node((node_bid_type)it->second, true);
         assert(node);
         const_iterator result = node->begin(m_height - 1);
@@ -696,7 +699,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching in a leaf");
+            LOG << "Searching in a leaf";
             leaf_type* leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(leaf);
             iterator result = leaf->find(k);
@@ -708,7 +711,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching in a node");
+        LOG << "Searching in a node";
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
         iterator result = node->find(k, m_height - 1);
@@ -727,7 +730,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching in a leaf");
+            LOG << "Searching in a leaf";
             const leaf_type* leaf = m_leaf_cache.get_const_node((leaf_bid_type)it->second, true);
             assert(leaf);
             const_iterator result = leaf->find(k);
@@ -739,7 +742,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching in a node");
+        LOG << "Searching in a node";
         const node_type* node = m_node_cache.get_const_node((node_bid_type)it->second, true);
         assert(node);
         const_iterator result = node->find(k, m_height - 1);
@@ -758,7 +761,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching lower bound in a leaf");
+            LOG << "Searching lower bound in a leaf";
             leaf_type* leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(leaf);
             iterator result = leaf->lower_bound(k);
@@ -769,7 +772,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching lower bound in a node");
+        LOG << "Searching lower bound in a node";
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
         iterator result = node->lower_bound(k, m_height - 1);
@@ -787,7 +790,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching lower bound in a leaf");
+            LOG << "Searching lower bound in a leaf";
             const leaf_type* leaf = m_leaf_cache.get_const_node((leaf_bid_type)it->second, true);
             assert(leaf);
             const_iterator result = leaf->lower_bound(k);
@@ -799,7 +802,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching lower bound in a node");
+        LOG << "Searching lower bound in a node";
         const node_type* node = m_node_cache.get_const_node((node_bid_type)it->second, true);
         assert(node);
         const_iterator result = node->lower_bound(k, m_height - 1);
@@ -817,7 +820,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching upper bound in a leaf");
+            LOG << "Searching upper bound in a leaf";
             leaf_type* Leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(Leaf);
             iterator result = Leaf->upper_bound(k);
@@ -829,7 +832,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching upper bound in a node");
+        LOG << "Searching upper bound in a node";
         node_type* Node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(Node);
         iterator result = Node->upper_bound(k, m_height - 1);
@@ -847,7 +850,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Searching upper bound in a leaf");
+            LOG << "Searching upper bound in a leaf";
             const leaf_type* leaf = m_leaf_cache.get_const_node((leaf_bid_type)it->second, true);
             assert(leaf);
             const_iterator result = leaf->upper_bound(k);
@@ -859,7 +862,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Searching upper bound in a node");
+        LOG << "Searching upper bound in a node";
         const node_type* node = m_node_cache.get_const_node((node_bid_type)it->second, true);
         assert(node);
         const_iterator result = node->upper_bound(k, m_height - 1);
@@ -918,7 +921,7 @@ public:
 
         if (m_height == 2)                // 'it' points to a leaf
         {
-            STXXL_VERBOSE1("Deleting key from a leaf");
+            LOG << "Deleting key from a leaf";
             leaf_type* Leaf = m_leaf_cache.get_node((leaf_bid_type)it->second, true);
             assert(Leaf);
             size_type result = Leaf->erase(k);
@@ -931,7 +934,7 @@ public:
                 return result;
             // no underflow or root has a special degree 1 (too few elements)
 
-            STXXL_VERBOSE1("btree: Fusing or rebalancing a leaf");
+            LOG << "btree: Fusing or rebalancing a leaf";
             fuse_or_balance(it, m_leaf_cache);
 
             assert(m_leaf_cache.nfixed() == 0);
@@ -941,7 +944,7 @@ public:
         }
 
         // 'it' points to a node
-        STXXL_VERBOSE1("Deleting key from a node");
+        LOG << "Deleting key from a node";
         assert(m_root_node.size() >= 2);
         node_type* node = m_node_cache.get_node((node_bid_type)it->second, true);
         assert(node);
@@ -954,13 +957,13 @@ public:
             return result;
         // no underflow happened
 
-        STXXL_VERBOSE1("Fusing or rebalancing a node");
+        LOG << "Fusing or rebalancing a node";
         fuse_or_balance(it, m_node_cache);
 
         if (m_root_node.size() == 1)
         {
-            STXXL_VERBOSE1("btree Root has size 1 and height > 2");
-            STXXL_VERBOSE1("btree Deallocate root and decrease height");
+            LOG << "btree Root has size 1 and height > 2";
+            LOG << "btree Deallocate root and decrease height";
             it = m_root_node.begin();
             node_bid_type root_bid = it->second;
             assert(it->first == m_key_compare.max_value());
@@ -973,7 +976,7 @@ public:
 
             m_node_cache.delete_node(root_bid);
             --m_height;
-            STXXL_VERBOSE1("btree Decreasing height to " << m_height);
+            LOG << "btree Decreasing height to " << m_height;
         }
 
         assert(m_leaf_cache.nfixed() == 0);
@@ -1055,9 +1058,9 @@ public:
           m_prefetching_enabled(true),
           m_bm(foxxll::block_manager::get_instance())
     {
-        STXXL_VERBOSE1("Creating a btree, addr=" << this);
-        STXXL_VERBOSE1(" bytes in a node: " << node_bid_type::size);
-        STXXL_VERBOSE1(" bytes in a leaf: " << leaf_bid_type::size);
+        LOG << "Creating a btree, addr=" << this;
+        LOG << " bytes in a node: " << node_bid_type::size;
+        LOG << " bytes in a leaf: " << leaf_bid_type::size;
 
         if (range_sorted == false)
         {
@@ -1089,9 +1092,9 @@ public:
           m_prefetching_enabled(true),
           m_bm(foxxll::block_manager::get_instance())
     {
-        STXXL_VERBOSE1("Creating a btree, addr=" << this);
-        STXXL_VERBOSE1(" bytes in a node: " << node_bid_type::size);
-        STXXL_VERBOSE1(" bytes in a leaf: " << leaf_bid_type::size);
+        LOG << "Creating a btree, addr=" << this;
+        LOG << " bytes in a node: " << node_bid_type::size;
+        LOG << " bytes in a leaf: " << leaf_bid_type::size;
 
         if (range_sorted == false)
         {

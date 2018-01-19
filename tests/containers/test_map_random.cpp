@@ -18,9 +18,11 @@
 //! This is an example of use of \c stxxl::map container.
 
 #include <tlx/die.hpp>
+#include <tlx/logger.hpp>
+
 #include <stxxl/map>
 
-#include "map_test_handlers.h"
+#include <map_test_handlers.h>
 
 using key_type = int;
 using data_type = int;
@@ -68,14 +70,14 @@ int main(int argc, char* argv[])
 {
     using vector_type = std::vector<std::pair<key_type, data_type> >;
 
-    STXXL_MSG("Node block size: " << NODE_BLOCK_SIZE << " bytes");
-    STXXL_MSG("Leaf block size: " << LEAF_BLOCK_SIZE << " bytes");
-    STXXL_MSG("Node max elements: " << NODE_MELEMENTS);
-    STXXL_MSG("Leaf max elements: " << LEAF_MELEMENTS);
+    LOG1 << "Node block size: " << size_t(NODE_BLOCK_SIZE) << " bytes";
+    LOG1 << "Leaf block size: " << size_t(LEAF_BLOCK_SIZE) << " bytes";
+    LOG1 << "Node max elements: " << size_t(NODE_MELEMENTS);
+    LOG1 << "Leaf max elements: " << size_t(LEAF_MELEMENTS);
 
     stxxl::random_number32 rnd;
     //stxxl::ran32State = 1141225706;
-    STXXL_MSG("Init random seed: " << stxxl::ran32State);
+    LOG1 << "Init random seed: " << stxxl::ran32State;
 
     int a = (PERCENT_CLEAR +
              PERCENT_SIZING +
@@ -91,16 +93,16 @@ int main(int argc, char* argv[])
              PERCENT_FIND +
              PERCENT_ITERATOR);
 
-    STXXL_CHECK(a == 1000);
+    die_unless(a == 1000);
 
     if (argc < 2)
     {
-        STXXL_MSG("Usage: " << argv[0] << " STEP ");
-        STXXL_MSG("Note, that STEP must be > 1000");
+        LOG1 << "Usage: " << argv[0] << " STEP ";
+        LOG1 << "Note, that STEP must be > 1000";
         return -1;
     }
     uint64_t MAX_STEP = atoi(argv[1]);
-    STXXL_CHECK(MAX_STEP > 1000);
+    die_unless(MAX_STEP > 1000);
     std_map_type stdmap;
     xxl_map_type xxlmap(NODE_BLOCK_SIZE * 4, LEAF_BLOCK_SIZE * 3);
 
@@ -116,7 +118,7 @@ int main(int argc, char* argv[])
 
         if (i % (MAX_STEP / 100) == 0)
         {
-            STXXL_MSG("Step=" << i << " (" << (unsigned)stdmap.size() << ")");
+            LOG1 << "Step=" << i << " (" << (unsigned)stdmap.size() << ")";
         }
 
         // *********************************************************
@@ -129,8 +131,8 @@ int main(int argc, char* argv[])
                 stdmap.clear();
                 xxlmap.clear();
 
-                STXXL_CHECK(stdmap.empty());
-                STXXL_CHECK(xxlmap.empty());
+                die_unless(stdmap.empty());
+                die_unless(xxlmap.empty());
             }
         }
         // *********************************************************
@@ -141,7 +143,7 @@ int main(int argc, char* argv[])
             std_map_type::size_type size1 = stdmap.size();
             xxl_map_type::size_type size2 = xxlmap.size();
 
-            STXXL_CHECK(size1 == size2);
+            die_unless(size1 == size2);
         }
         // *********************************************************
         // The erase range function will be called
@@ -159,12 +161,12 @@ int main(int argc, char* argv[])
             stdmap.erase(stdmap.lower_bound(key1), stdmap.upper_bound(key2));
             xxlmap.erase(xxlmap.lower_bound(key1), xxlmap.upper_bound(key2));
 
-            STXXL_CHECK(stdmap.size() == xxlmap.size());
+            die_unless(stdmap.size() == xxlmap.size());
 
-            STXXL_CHECK(stdmap.lower_bound(key1) == stdmap.end() ||
-                        stdmap.lower_bound(key1) == stdmap.upper_bound(key2));
-            STXXL_CHECK(xxlmap.lower_bound(key1) == xxlmap.end() ||
-                        xxlmap.lower_bound(key1) == xxlmap.upper_bound(key2));
+            die_unless(stdmap.lower_bound(key1) == stdmap.end() ||
+                       stdmap.lower_bound(key1) == stdmap.upper_bound(key2));
+            die_unless(xxlmap.lower_bound(key1) == xxlmap.end() ||
+                       xxlmap.lower_bound(key1) == xxlmap.upper_bound(key2));
         }
         // *********************************************************
         // The erase a key function will be called
@@ -176,8 +178,8 @@ int main(int argc, char* argv[])
             stdmap.erase(key);
             xxlmap.erase(key);
 
-            STXXL_CHECK(stxxl::not_there(stdmap, key));
-            STXXL_CHECK(stxxl::not_there(xxlmap, key));
+            die_unless(stxxl::not_there(stdmap, key));
+            die_unless(stxxl::not_there(xxlmap, key));
         }
         // *********************************************************
         // The erase function will be called
@@ -189,7 +191,7 @@ int main(int argc, char* argv[])
             std_map_type::iterator stditer = stdmap.find(key);
             xxl_map_type::iterator xxliter = xxlmap.find(key);
 
-            STXXL_CHECK(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
+            die_unless(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
 
             if (stditer != stdmap.end())
                 stdmap.erase(stditer);
@@ -197,8 +199,8 @@ int main(int argc, char* argv[])
             if (xxliter != xxlmap.end())
                 xxlmap.erase(xxliter);
 
-            STXXL_CHECK(stxxl::not_there(stdmap, key));
-            STXXL_CHECK(stxxl::not_there(xxlmap, key));
+            die_unless(stxxl::not_there(stdmap, key));
+            die_unless(stxxl::not_there(xxlmap, key));
         }
         // *********************************************************
         // The insert function will be called
@@ -209,8 +211,8 @@ int main(int argc, char* argv[])
             stdmap.insert(std::pair<key_type, data_type>(key, 2 * key));
             xxlmap.insert(std::pair<key_type, data_type>(key, 2 * key));
 
-            STXXL_CHECK(stxxl::there(stdmap, key, 2 * key));
-            STXXL_CHECK(stxxl::there(xxlmap, key, 2 * key));
+            die_unless(stxxl::there(stdmap, key, 2 * key));
+            die_unless(stxxl::there(xxlmap, key, 2 * key));
         }
         // *********************************************************
         // The emplace function will be called
@@ -221,8 +223,8 @@ int main(int argc, char* argv[])
             stdmap.emplace(key, 2*key);
             xxlmap.emplace(key, 2*key);
 
-            STXXL_CHECK(stxxl::there(stdmap, key, 2*key));
-            STXXL_CHECK(stxxl::there(xxlmap, key, 2*key));
+            die_unless(stxxl::there(stdmap, key, 2*key));
+            die_unless(stxxl::there(xxlmap, key, 2*key));
         }
         // *********************************************************
         // The emplace_hint function will be called
@@ -233,8 +235,8 @@ int main(int argc, char* argv[])
             stdmap.emplace_hint(stdmap.upper_bound(key), key, 2*key);
             xxlmap.emplace_hint(xxlmap.upper_bound(key), key, 2*key);
 
-            STXXL_CHECK(stxxl::there(stdmap, key, 2*key));
-            STXXL_CHECK(stxxl::there(xxlmap, key, 2*key));
+            die_unless(stxxl::there(stdmap, key, 2*key));
+            die_unless(stxxl::there(xxlmap, key, 2*key));
         }
         // *********************************************************
         // The bulk insert function will be called
@@ -257,10 +259,10 @@ int main(int argc, char* argv[])
             xxlmap.insert(v2.begin(), v2.end());
 
             for (unsigned j = lower; j < upper; j++)
-                STXXL_CHECK(stxxl::there(stdmap, j, 2 * j));
+                die_unless(stxxl::there(stdmap, j, 2 * j));
 
             for (unsigned j = lower; j < upper; j++)
-                STXXL_CHECK(stxxl::there(xxlmap, j, 2 * j));
+                die_unless(stxxl::there(xxlmap, j, 2 * j));
         }
         // *********************************************************
         // The lower_bound function will be called
@@ -279,9 +281,9 @@ int main(int argc, char* argv[])
                 std_map_type::iterator stditer = stdmap.lower_bound(key1);
                 xxl_map_type::iterator xxliter = xxlmap.lower_bound(key1);
 
-                STXXL_CHECK(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
+                die_unless(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
                 if (!stxxl::is_end(stdmap, stditer)) {
-                    STXXL_CHECK(stxxl::is_same(*(stditer), *(xxliter)));
+                    die_unless(stxxl::is_same(*(stditer), *(xxliter)));
                 }
 
                 key1++;
@@ -304,9 +306,9 @@ int main(int argc, char* argv[])
                 std_map_type::iterator stditer = stdmap.upper_bound(key1);
                 xxl_map_type::iterator xxliter = xxlmap.upper_bound(key1);
 
-                STXXL_CHECK(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
+                die_unless(stxxl::is_end(stdmap, stditer) == is_end(xxlmap, xxliter));
                 if (!stxxl::is_end(stdmap, stditer)) {
-                    STXXL_CHECK(stxxl::is_same(*(stditer), *(xxliter)));
+                    die_unless(stxxl::is_same(*(stditer), *(xxliter)));
                 }
 
                 key1++;
@@ -329,10 +331,10 @@ int main(int argc, char* argv[])
                 std_map_type::iterator stditer = stdmap.find(key1);
                 xxl_map_type::iterator xxliter = xxlmap.find(key1);
 
-                STXXL_CHECK(stxxl::is_end(stdmap, stditer) == stxxl::is_end(xxlmap, xxliter));
+                die_unless(stxxl::is_end(stdmap, stditer) == stxxl::is_end(xxlmap, xxliter));
                 if (!stxxl::is_end(stdmap, stditer)) {
-                    STXXL_CHECK(stxxl::is_same(*(stditer), *(xxliter)));
-                    STXXL_CHECK(stdmap.at(key1) == xxlmap.at(key1));
+                    die_unless(stxxl::is_same(*(stditer), *(xxliter)));
+                    die_unless(stdmap.at(key1) == xxlmap.at(key1));
                 } else
                 {
                     die_unless_throws(stdmap.at(key1), std::out_of_range);
@@ -355,18 +357,18 @@ int main(int argc, char* argv[])
 
             while (siter1 != stdmap.end())
             {
-                STXXL_CHECK(xiter1 != xxlmap.end());
-                STXXL_CHECK(stxxl::is_same(*(siter1++), *(xiter1++)));
+                die_unless(xiter1 != xxlmap.end());
+                die_unless(stxxl::is_same(*(siter1++), *(xiter1++)));
                 if (siter1 != stdmap.end()) {
-                    STXXL_CHECK(!stxxl::is_same(*siter1, *siter2));
+                    die_unless(!stxxl::is_same(*siter1, *siter2));
                 }
                 if (xiter1 != xxlmap.end()) {
-                    STXXL_CHECK(!stxxl::is_same(*xiter1, *xiter2));
+                    die_unless(!stxxl::is_same(*xiter1, *xiter2));
                 }
             }
-            STXXL_CHECK(xiter1 == xxlmap.end());
-            STXXL_CHECK(siter2 == stdmap.begin());
-            STXXL_CHECK(xiter2 == xxlmap.begin());
+            die_unless(xiter1 == xxlmap.end());
+            die_unless(siter2 == stdmap.begin());
+            die_unless(xiter2 == xxlmap.begin());
         }
     }
     return 0;

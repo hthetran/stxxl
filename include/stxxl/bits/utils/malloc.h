@@ -14,14 +14,18 @@
 #ifndef STXXL_UTILS_MALLOC_HEADER
 #define STXXL_UTILS_MALLOC_HEADER
 
-#include <foxxll/unused.hpp>
 #include <stxxl/bits/config.h>
 
-#include <ostream>
 #if STXXL_HAVE_MALLINFO_PROTO
   #include <malloc.h>
+
+  #include <cstdlib>
+
+  #include <ostream>
 #endif
-#include <cstdlib>
+
+
+#include <tlx/unused.hpp>
 
 namespace stxxl {
 
@@ -135,7 +139,7 @@ inline std::ostream& operator << (std::ostream& s, const malloc_stats& st)
     s << "=================================================================" << std::endl;
 #else
     s << "MALLOC statistics are not supported on this platform";
-    STXXL_UNUSED(st);
+    tlx::unused(st);
 #endif
     return s;
 }
