@@ -23,4 +23,4 @@ build:
   parallel: true
   verbosity: normal
 test_script:
-- cmd: ctest -V --build-config %CONFIGURATION%
+- cmd: ctest --build-config %CONFIGURATION%
