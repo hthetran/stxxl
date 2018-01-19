@@ -2799,7 +2799,7 @@ public:
 #if STXXL_PARALLEL
 #pragma omp parallel for
 #endif
-            for (size_t p = 0; p < m_num_insertion_heaps; ++p)
+            for (int64_t p = 0; p < static_cast<int64_t>(m_num_insertion_heaps); ++p)
             {
                 if (m_proc[p]->insertion_heap.size() >= m_insertion_heap_capacity) {
                     // flush out overfull insertion heap arrays

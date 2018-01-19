@@ -224,7 +224,7 @@ public:
         #if STXXL_PARALLEL
         #pragma omp parallel for
         #endif
-        for (unsigned row = 0; row < BlockSideLength; ++row)
+        for (int row = 0; row < static_cast<int>(BlockSideLength); ++row)
             for (unsigned col = 0; col < BlockSideLength; ++col)
                 data[row * BlockSideLength + col] = 0;
     }

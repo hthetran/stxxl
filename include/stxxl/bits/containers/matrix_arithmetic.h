@@ -1579,7 +1579,7 @@ struct matrix_operations
                 #if STXXL_PARALLEL
                 #pragma omp parallel for
                 #endif
-                for (unsigned int element_row_in_block = 0; element_row_in_block < BlockSideLength; ++element_row_in_block)
+                for (int element_row_in_block = 0; element_row_in_block < static_cast<int>(BlockSideLength); ++element_row_in_block)
                     for (unsigned int element_col_in_block = 0; element_col_in_block < BlockSideLength; ++element_col_in_block)
                         fsw.feed_a_element(element_row_in_block * BlockSideLength + element_col_in_block,
                                            mtq_a.read_element(element_row_in_block * BlockSideLength + element_col_in_block));

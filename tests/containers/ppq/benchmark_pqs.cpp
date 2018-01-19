@@ -681,7 +681,7 @@ void do_bulk_push_asc(ContainerType& c, bool do_parallel)
 #if STXXL_PARALLEL
             #pragma omp for schedule(static)
 #endif
-            for (size_t j = 0; j < bulk_size; ++j)
+            for (int64_t j = 0; j < static_cast<int64_t>(bulk_size); ++j)
             {
                 c.bulk_push(value_type(num_elements - 1 - i * bulk_size - j), thread_id);
             }
@@ -703,7 +703,7 @@ void do_bulk_push_asc(ContainerType& c, bool do_parallel)
 #if STXXL_PARALLEL
         #pragma omp for schedule(static)
 #endif
-        for (size_t j = (num_elements / bulk_size) * bulk_size;
+        for (int64_t j = (num_elements / bulk_size) * bulk_size;
              j < num_elements; j++)
         {
             c.bulk_push(value_type(num_elements - 1 - j), thread_id);
@@ -752,7 +752,7 @@ void do_bulk_push_rand(ContainerType& c,
 #if STXXL_PARALLEL
             #pragma omp for schedule(static)
 #endif
-            for (size_t j = 0; j < bulk_size; ++j)
+            for (int64_t j = 0; j < static_cast<int64_t>(bulk_size); ++j)
             {
                 int64_t k = datarng[thread_id]() % value_universe_size;
                 c.bulk_push(value_type(k), thread_id);
@@ -779,7 +779,7 @@ void do_bulk_push_rand(ContainerType& c,
 #if STXXL_PARALLEL
         #pragma omp for schedule(static)
 #endif
-        for (size_t j = 0; j < bulk_remain; ++j)
+        for (int64_t j = 0; j < static_cast<int64_t>(bulk_remain); ++j)
         {
             int64_t k = datarng[thread_id]() % value_universe_size;
             c.bulk_push(value_type(k), thread_id);
@@ -882,7 +882,7 @@ void do_bulk_pop_check_rand(ContainerType& c,
 #if STXXL_PARALLEL
                 #pragma omp for schedule(static)
 #endif
-                for (size_t j = 0; j < bulk_size; ++j)
+                for (int64_t j = 0; j < static_cast<int64_t>(bulk_size); ++j)
                 {
                     uint64_t k = datarng[thread_id]() % value_universe_size;
 #if STXXL_PARALLEL
@@ -909,7 +909,7 @@ void do_bulk_pop_check_rand(ContainerType& c,
 #if STXXL_PARALLEL
             #pragma omp for schedule(static)
 #endif
-            for (size_t j = 0; j < bulk_remain; ++j)
+            for (int64_t j = 0; j < static_cast<int64_t>(bulk_remain); ++j)
             {
                 uint64_t k = datarng[thread_id]() % value_universe_size;
 #if STXXL_PARALLEL
@@ -1055,7 +1055,7 @@ void do_bulk_rand_intermixed(ContainerType& c,
                 #pragma omp for
 #endif
 
-                for (size_t j = 0; j < this_bulk_size; j++)
+                for (int64_t j = 0; j < static_cast<int64_t>(this_bulk_size); j++)
                 {
                     progress("Inserting / deleting element",
                              i + j, (filled ? 3 : 2) * num_elements);
@@ -1132,7 +1132,7 @@ void do_bulk_intermixed_check(ContainerType& c, bool parallel)
                     #pragma omp for
 #endif
 
-                    for (size_t j = 0; j < this_bulk_size; j++)
+                    for (int64_t j = 0; j < static_cast<int64_t>(this_bulk_size); j++)
                     {
                         int64_t k = num_elements - num_inserts - j;
                         progress("Inserting/deleting element", i + j, 2 * num_elements);
@@ -1187,7 +1187,7 @@ void do_bulk_prefill(ContainerType& c, bool do_parallel,
 #if STXXL_PARALLEL
 #pragma omp for
 #endif
-        for (size_t i = 0; i < num_elements; ++i)
+        for (int64_t i = 0; i < static_cast<int64_t>(num_elements); ++i)
             c.bulk_push(value_type(i), thread_num);
     }
 
@@ -1346,7 +1346,7 @@ void do_bulk_pop_push(ContainerType& c, bool do_parallel)
 #if STXXL_PARALLEL
 #pragma omp for schedule(static)
 #endif
-                    for (size_t i = 0; i < work.size(); ++i)
+                    for (int64_t i = 0; i < static_cast<int64_t>(work.size()); ++i)
                     {
                         die_unequal(work[i].key, rindex + i);
                         c.bulk_push(value_type(windex + i), thread_num);
@@ -1462,7 +1462,7 @@ public:
 #if STXXL_PARALLEL
                 #pragma omp for
 #endif
-                for (size_type i = edges_begin; i < edges_end; ++i)
+                for (int64_t i = edges_begin; i < static_cast<int64_t>(edges_end); ++i)
                 {
                     c.bulk_push(value_type(edge_targets[i], distance + edge_lengths[i]),
                                 thread_num);
