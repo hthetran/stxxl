@@ -60,9 +60,9 @@ namespace stxxl {
  * \tparam SizeType size data type, default is \c external_size_type
  */
 template <class ValueType,
-          size_t BlockSize = STXXL_DEFAULT_BLOCK_SIZE(ValueType),
-          class AllocStr = foxxll::default_alloc_strategy,
-          class SizeType = external_size_type>
+    size_t BlockSize = STXXL_DEFAULT_BLOCK_SIZE(ValueType),
+    class AllocStr = foxxll::default_alloc_strategy,
+    class SizeType = external_size_type>
 class sequence
 {
     static constexpr bool debug = false;
@@ -210,7 +210,7 @@ private:
     {
         if (m_pool->size_write() < 2) {
             LOG1 << "sequence: invalid configuration, not enough blocks (" << m_pool->size_write() <<
-                ") in write pool, at least 2 are needed, resizing to 3";
+                 ") in write pool, at least 2 are needed, resizing to 3";
             m_pool->resize_write(3);
         }
 
@@ -270,7 +270,7 @@ public:
                 ++m_size;
                 return;
             }
-            // front block is completely filled
+                // front block is completely filled
             else if (m_front_block == m_back_block)
             {
                 // can not write the front block because it
@@ -366,6 +366,7 @@ public:
                 m_bm->new_block(m_alloc_strategy, newbid, m_alloc_count++);
 
                 LOG << "sequence[" << this << "]: push_back block " << m_back_block << " @ " << newbid;
+
                 m_bids.push_back(newbid);
                 m_pool->write(m_back_block, newbid);
                 if (m_bids.size() <= m_blocks2prefetch) {
@@ -605,6 +606,47 @@ public:
             m_next_bid = sequence.m_bids.begin();
         }
 
+        explicit stream(const sequence& sequence, size_t offset)
+            : m_sequence(sequence),
+              m_size(sequence.size() - offset)
+        {
+            const auto front_diff = std::distance(sequence.m_front_block->begin(), sequence.m_front_element);
+            const auto back_diff = std::distance(sequence.m_back_block->begin(), sequence.m_back_element);
+            if (offset + front_diff < block_type::size) {
+                // the first element to consider lies in the first block
+                m_current_block = sequence.m_front_block;
+                m_current_element = sequence.m_front_element + offset;
+                m_next_bid = sequence.m_bids.begin();
+            } else if (sequence.size() - offset <= back_diff + 1) {
+                const auto mid_offset = offset - (block_type::size - front_diff);
+                const size_t block_shift = mid_offset / block_type::size;
+                const size_t block_offset = mid_offset % block_type::size;
+                // the first element to consider lies in the last block
+                m_current_block = sequence.m_back_block;
+                m_current_element = sequence.m_back_block->begin() + block_offset;
+                m_next_bid = sequence.m_bids.end();
+            } else {
+                m_current_block = m_sequence.m_pool->steal();
+                const auto mid_offset = offset - (block_type::size - front_diff);
+                const size_t block_shift = mid_offset / block_type::size;
+                const size_t block_offset = mid_offset % block_type::size;
+                m_next_bid = sequence.m_bids.begin() + block_shift;
+                foxxll::request_ptr req = m_sequence.m_pool->read(m_current_block, *m_next_bid);
+
+                // give prefetching hints
+                bid_iter_type bid = m_next_bid + 1;
+                for (size_t i = 0; i < m_sequence.m_blocks2prefetch && bid != m_sequence.m_bids.end(); ++i, ++bid)
+                {
+                    m_sequence.m_pool->hint(*bid);
+                }
+
+                m_current_element = m_current_block->begin() + block_offset;
+                req->wait();
+
+                ++m_next_bid;
+            }
+        }
+
         ~stream()
         {
             if (m_current_block != m_sequence.m_front_block &&
@@ -702,6 +744,11 @@ public:
     stream get_stream()
     {
         return stream(*this);
+    }
+
+    stream get_stream(size_t offset)
+    {
+        return stream(*this, offset);
     }
 
     //! \}
